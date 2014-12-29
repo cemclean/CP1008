@@ -1,6 +1,6 @@
       *-----------------------------------------------------------------                            
       *                                                                                             
-      * Create PDF - eMail DereamWriter Reports                                                     
+      * Create PDF - eMail DreamWriter Reports                                                     
       *                                                                                             
       * T23285  05.23.2012 Charlie McLean                                             
       *         Project started                                                                     
