@@ -1,0 +1,12 @@
+      *----------------------------------------------------------------         
+      *                                                                         
+      *  Create PDF - eMail DereamWriter Reports                              
+      *                                                                         
+      *  CC23285 05.25.2012 Charlie McLean                                      
+      *          Project started                                                
+      *                                                                         
+      *----------------------------------------------------------------         
+     A          R ICP1008                   PFILE(FCP1008)                      
+      *                                                                         
+     A          K P1AN8A                                                        
+     A          S P1PRTF                    COMP(EQ ' ')                        

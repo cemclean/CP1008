@@ -1,0 +1,275 @@
+      *-----------------------------------------------------------------                            
+      *                                                                                             
+      * Create PDF - eMail DereamWriter Reports                                                     
+      *                                                                                             
+      * T23285  05.23.2012 Charlie McLean                                             
+      *         Project started                                                                     
+      *-----------------------------------------------------------------                            
+     h option(*srcstmt:*nodebugio)                                                                  
+      *     P1 DreamWriter reports                                                                  
+     FFCP1008L1 UP   E           K disk                                                             
+      *     A2 CIF supplemental data base - Code                                                    
+     FF01092    IF   E           K disk                                                             
+      *     A3 CIF supplemental data base - Narrative                                               
+     FF01093LA  IF   E           K disk                                                             
+      *                                                                                             
+     dmypsds          SDS                                                                           
+     d $$jobn                244    253                                                             
+     d $$user                254    263                                                             
+                                                                                                    
+     d EMLSTMF         PR                  ExtPgm('QCMDEXC')                                        
+     d  CmdString                  3000    Options(*Varsize)                                        
+     d                                     Const                                                    
+     d  CmdLength                    15P 5 Const                                                    
+     d                                3    Options(*Nopass)                                         
+     d                                     Const                                                    
+                                                                                                    
+      // prototype for external program call                                                        
+     d Runcmd          PR                  ExtPgm('QCMDEXC')                                        
+     d                             3000    Const Options(*Varsize)                                  
+     d                               15  5 Const                                                    
+                                                                                                    
+     d Cmd             s           3000    Varying                                                  
+                                                                                                    
+     d Send            s           3000                                                             
+     d p4a             s              4                                                             
+     d p4b             s             80                                                             
+     d p4c             s             80                                                             
+     d pos1            s              4  0                                                          
+     d pos2            s              4  0                                                          
+     d start2          s              4  0                                                          
+     d start3          s              4  0                                                          
+     d long            s              4  0                                                          
+     d a3k1            s              8  0                                                          
+     d a3k2            s              2                                                             
+     d a3k3            s              3                                                             
+     d a2k1            s              2                                                             
+     d a2k2            s              3                                                             
+     d a2k3            s              8  0                                                          
+     d a2k4            s             10                                                             
+     d a2k5            s              6  0                                                          
+     d $$pid           c                   'PCP1008'                                                
+     d $$upmj          s              6  0                                                          
+     d $$tday          s              6  0                                                          
+                                                                                                    
+     d $$rtn           s              2                                                             
+     d $$prtf          s              1                                                             
+     d $$rtxt          s             40                                                             
+     d $$rtxt10        c                   'Email sent'                                             
+     d $$rtxt50        c                   'No email address found'                                 
+     d $$rtxt51        c                   'Incomplete email address'                               
+     d $$rtxt52        c                   'Problem with sending mail'                              
+                                                                                                    
+     d CP10081A        s             80    dtaara                                                   
+     d CP10081B        s             80    dtaara                                                   
+     d p1              s             80                                                             
+     d p2              s             80                                                             
+     d p3              s             80                                                             
+     d p4              s             80                                                             
+     d p5              s             80                                                             
+                                                                                                    
+      * mail report to multipe addresses                                                            
+     c                   exsr      s999                                                             
+                                                                                                    
+      * start command string                                                                        
+     c                   exsr      s001                                                             
+      * get send-to addresse(s) for this report                                                     
+     c                   exsr      s002                                                             
+      * complete address portion of command string                                                  
+     c                   exsr      s003                                                             
+      * add PDF report as attachment                                                                
+     c                   exsr      s004                                                             
+      * complete command string and send email                                                      
+     c     $$rtn         ifeq      '10'                                                             
+     c                   eval      P1PRTF = '1'                                                     
+     c                   exsr      s005                                                             
+     c                   endif                                                                      
+      * update FCP1008                                                                              
+     c                   update    ICP1008                                                          
+                                                                                                    
+      * subroutines -----------------------------------------------------                           
+      * ------------------------------------------------------------ S001                           
+      * start command string                                                                        
+      *                                                                                             
+     c     s001          begsr                                                                      
+      * build first part of the command string                                                      
+     c                   eval        Send = '*LIBL/EMLSTMF +                                        
+     c                               subject(''' + %trim(p1) + ''') +                               
+     c                               fromname(''' + %trim(p2) + ''') +                              
+     c                               fromaddr(''' + %trim(p3) + ''') +                              
+     c                               to('                                                           
+     c     e001          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S002                           
+      * get send-to address(s) for this customer                                                    
+      *                                                                                             
+     c     s002          begsr                                                                      
+      * initialize update values for FCP1008                                                        
+     c                   eval      $$prtf = ' '                                                     
+     c                   eval      $$rtn  = '10'                                                    
+     c                   eval      $$rtxt = $$rtxt10                                                
+     c                   exsr      s006                                                             
+      * get address(s) for this customer                                                            
+     c                   move      *blanks       a3k1                                               
+     c                   move      *blanks       a3k2                                               
+     c                   move      *blanks       a3k3                                               
+     c                   move      P1AN8A        a3k1                                               
+     c                   move      'DL'          a3k2                                               
+     c                   movel     'ML'          a3k3                                               
+     c     a3key         setll     F01093LA                                                         
+     c     s002a         tag                                                                        
+     c                   reade     F01093LA                             3536                        
+     c     *IN35         ifeq      *ON                                                              
+     c     *IN36         oreq      *ON                                                              
+     c                   goto      s002b                                                            
+     c                   endif                                                                      
+                                                                                                    
+     c                   move      *blanks       p4a                                                
+     c                   move      *blanks       p4b                                                
+     c                   move      *blanks       p4c                                                
+     c                   move      *blanks       p4                                                 
+     c                   movel     A3DS80        p4                                                 
+                                                                                                    
+     c                   monitor                                                                    
+      * parse to-address, email/name/*TO                                                            
+     c     '/'           scan      p4            pos1                     90                        
+     c     *in90         ifeq      *on                                                              
+     c                   eval      long=(pos1-1)                                                    
+     c     long          subst     p4:1          p4c                                                
+     c                   eval      start2=(pos1+1)                                                  
+     c     '/'           scan      p4:start2     pos2                     90                        
+     c     *in90         ifeq      *on                                                              
+     c                   eval      long=(pos2-start2)                                               
+     c     long          subst     p4:start2     p4b                                                
+     c                   eval      start3=(pos2+1)                                                  
+     c                   eval      long=(%len(p4)-pos2)                                             
+     c     long          subst     p4:start3     p4a                                                
+     c                   endif                                                                      
+     c                   endif                                                                      
+     c                   on-error                                                                   
+     c                   eval      $$prtf = '1'                                                     
+     c                   eval      $$rtn  = '51'                                                    
+     c                   eval      $$rtxt = $$rtxt51                                                
+     c                   exsr      s006                                                             
+     c                   goto      e002                                                             
+     c                   endmon                                                                     
+      * re-assemble with tic marks and add to command string                                        
+     c                   eval        Send = %trim(Send) + ' ''' +                                   
+     c                               %trim(p4c) + '''/''' +                                         
+     c                               %trim(p4b) + '''/' +                                           
+     c                               %trim(p4a)                                                     
+     c                   goto      s002a                                                            
+     c     s002b         tag                                                                        
+      * set error condition if no address is found                                                  
+     c     p4            ifeq      ' '                                                              
+     c                   eval      $$prtf = '1'                                                     
+     c                   eval      $$rtn  = '50'                                                    
+     c                   eval      $$rtxt = $$rtxt50                                                
+     c                   exsr      s006                                                             
+     c                   endif                                                                      
+      * set error condition for missing parts                                                       
+     c     p4a           ifeq      ' '                                                              
+     c     p4b           oreq      ' '                                                              
+     c     p4c           oreq      ' '                                                              
+     c                   eval      $$prtf = '1'                                                     
+     c                   eval      $$rtn  = '51'                                                    
+     c                   eval      $$rtxt = $$rtxt51                                                
+     c                   exsr      s006                                                             
+     c                   endif                                                                      
+     c     e002          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S003                           
+      * finish address portion of command string                                                    
+      *                                                                                             
+     c     s003          begsr                                                                      
+     c                   eval        Send = %trim(Send) + ') stmf('                                 
+     c     e003          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S004                           
+      * add PDF invoice attachments                                                                 
+      *                                                                                             
+     c     s004          begsr                                                                      
+     c                   eval        Send = %trim(Send) +                                           
+     c                               ' ''' + %trim(P1PTNM) + ''''                                   
+     c     e004          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S005                           
+      * complete command string and send email                                                      
+      *                                                                                             
+     c     s005          begsr                                                                      
+     c                   monitor                                                                    
+     c*                  eval        Send = %trim(Send) + ')'                                       
+     c                   eval        Send = %trim(Send) + ') +                                      
+     c                               msgm(jdeobjp/sersrc/cp1008.01)'                                
+                                                                                                    
+     c                   CallP       EMLSTMF(Send : %Len(Send))                                     
+     c                   on-error                                                                   
+     c                   eval      $$prtf = '1'                                                     
+     c                   eval      $$rtn  = '52'                                                    
+     c                   eval      $$rtxt = $$rtxt52                                                
+     c                   exsr      s006                                                             
+     c                   goto      e005                                                             
+     c                   endmon                                                                     
+     c     e005          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S006                           
+      * initialize update values for FCP1008                                                        
+      *                                                                                             
+     c     s006          begsr                                                                      
+     c                   eval      P1PRTF = $$prtf                                                  
+     c                   eval      P1RTN  = $$rtn                                                   
+     c                   eval      P1RTXT = $$rtxt                                                  
+     c                   eval      P1USER = $$user                                                  
+     c                   eval      P1PID  = $$pid                                                   
+     c                   eval      P1JOBN = $$jobn                                                  
+     c                   eval      P1UPMJ = $$upmj                                                  
+     c                   eval      P1TDAY = $$tday                                                  
+     c     e006          endsr                                                                      
+                                                                                                    
+      * ------------------------------------------------------------ S999                           
+      * initial processing                                                                          
+      *                                                                                             
+     c     s999          begsr                                                                      
+      *                                                                                             
+     c*    *ENTRY        PLIST                                                                      
+     c*                  PARM                    $pathnm                                            
+     c*                  PARM                    $psan8a                                            
+                                                                                                    
+      *                                                                                             
+     c     A3KEY         KLIST                                                                      
+     c                   KFLD                    a3k1                                               
+     c                   KFLD                    a3k2                                               
+     c                   KFLD                    a3k3                                               
+      *                                                                                             
+     c     A2KEY         KLIST                                                                      
+     c                   KFLD                    a2k1                                               
+     c                   KFLD                    a2k2                                               
+     c                   KFLD                    a2k3                                               
+     c                   KFLD                    a2k4                                               
+     c                   KFLD                    a2k5                                               
+      * get from-name & from-address, subject                                                       
+      /free                                                                                         
+         in *dtaara;                                                                                
+      /end-free                                                                                     
+     c                   eval      p2=%trim(CP10081A)                                               
+     c                   eval      p3=%trim(CP10081B)                                               
+      * get email subject from CIF description                                                      
+     c                   eval      a2k1 = 'DL'                                                      
+     c                   eval      a2k2 = 'ML'                                                      
+     c                   eval      a2k3 = %int(P1AN8A)                                              
+     c     a2key         setll     F01092                                                           
+     c                   reade     F01092                               3536                        
+     c     *IN35         ifeq      *ON                                                              
+     c     *IN36         oreq      *ON                                                              
+     c                   eval      p1 = 'General Report Sent'                                       
+     c                   else                                                                       
+     c                   eval      p1 = A2RMK                                                       
+     c                   endif                                                                      
+                                                                                                    
+      * time and julian date                                                                        
+     c                   time                    $$tday                                             
+     c                   eval      $$upmj=%int(%Char(%date(udate:*mdy)                              
+     c                                     :*longjul0)) - 1900000                                   
+      * initial processin is complete                                                               
+     c                   move      *ON           *IN98                                              
+     c     e999          endsr                                                                      

@@ -1,0 +1,70 @@
+      *----------------------------------------------------------------         
+      *                                                                         
+      *  Create PDF - eMail DereamWriter Reports                              
+      *                                                                         
+      *  CC23285 05.25.2012 Charlie McLean                                      
+      *          Project started                                                
+      *                                                                         
+      *----------------------------------------------------------------         
+     A          R ICP1008                   TEXT('PDF DreamWriter Reports')     
+      *                                                                         
+     A            P1AN8A         8S 0       TEXT('CIF AB no for addresses. . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('                    ' +     
+     A                                      'CIF AB              ' +            
+     A                                      '--------')                         
+      *                                                                         
+     A            P1PRTF         1A         TEXT('Email Flag . . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('                    ' +     
+     A                                      '                    ' +            
+     A                                      '-')                                
+      *                                                                         
+     A            P1PTNM       256A         TEXT('PDF Name and Path. . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('PDF Path            ' +     
+     A                                      'and Name            ' +            
+     A                                      '--------------------')             
+      *                                                                         
+     A            P1RTN          2A         TEXT('Return Code. . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Rtn                 ' +     
+     A                                      'Cde                 ' +            
+     A                                      '---')                              
+      *                                                                         
+     A            P1RTXT        40A         TEXT('Return Text. . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Return              ' +     
+     A                                      'Text                ' +            
+     A                                      '--------------------')             
+      *                                                                         
+     A            P1USER        10A         TEXT('Update User. . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Update              ' +     
+     A                                      'User                ' +            
+     A                                      '----------')                       
+      *                                                                         
+     A            P1PID         10A         TEXT('Program ID . . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('                    ' +     
+     A                                      'Program             ' +            
+     A                                      '----------')                       
+      *                                                                         
+     A            P1JOBN        10A         TEXT('Update Job Name. . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Update              ' +     
+     A                                      'Job Name            ' +            
+     A                                      '----------')                       
+      *                                                                         
+     A            P1UPMJ         6S 0       TEXT('Date Updated . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Date                ' +     
+     A                                      'Updated             ' +            
+     A                                      '-------')                          
+      *                                                                         
+     A            P1TDAY         6S 0       TEXT('Time Updated . . . . . . . . +
+     A                                      . . . . . .')                       
+     A                                      COLHDG('Time                ' +     
+     A                                      'Updated             ' +            
+     A                                      '-------')                          
+      **                                                                        

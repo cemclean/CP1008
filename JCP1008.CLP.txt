@@ -1,0 +1,92 @@
+/*-------------------------------------------------------------------+          
+ *                                                                   +          
+ * Create PDF - eMail DereamWriter Reports                           +          
+ *                                                                   +          
+ *   Rename PDF:    No                                               +          
+ *   Move PDF:      No                                               +          
+ *   Chg Authority: No                                               +          
+ *   Manage Spool:  No                                               +          
+ *   Log File:      Yes  FCP1008                                     +          
+ *   Email:         Yes, to all email address in CIF for report      +          
+ *                                                                   +          
+ *   Data Queue:   from long variable  text                          +          
+ *                    1  752 &PDFQUE   Full PDF data queue           +          
+ *                   15   26           Qualified job name            +          
+ *                   15   10 &JOBNAM   Job name                      +          
+ *                   25   10 &USER     User name                     +          
+ *                   35    6 &JOBNBR   Job number                    +          
+ *                   41   10 &FILE     Spool file name               +          
+ *                   53    4 &SPLNBRB  Spool file number (binary)    +          
+ *                   57  250           Mail tag                      +          
+ *                   57    8 &PSAN8A   New name of PDF               +          
+ *                  307  340 &PATHNM   Path and name                 +          
+ *                  663   10 &USRDTA   User Data                     +          
+ *                                                                   +          
+ * T23285  05.23.2012 Charlie McLean                                 +          
+ *         Project started                                           +          
+ *                                                                   +          
+ *-------------------------------------------------------------------*/         
+                                                                                
+ START:      PGM                                                                
+                                                                                
+             DCL        &FLDLEN  *DEC  LEN(5 0) VALUE(752)                      
+             DCL        &PDFQUE  *CHAR LEN(752) /*PDF data queue     */         
+             DCL        &JOBNAM  *CHAR LEN(10)  /* job name          */         
+             DCL        &USER    *CHAR LEN(10)  /* user              */         
+             DCL        &JOBNBR  *CHAR LEN(6)   /* job number        */         
+             DCL        &FILE    *CHAR LEN(10)  /* spool file name   */         
+             DCL        &SPLNBRB *CHAR LEN(4)   /* splf nbr binary   */         
+             DCL        &SPLNBRD *DEC  LEN(6)   /* splf nbr decimal  */         
+             DCL        &MAILTG  *CHAR LEN(250) /* mail tag          */         
+             DCL        &PATHNM  *CHAR LEN(340) /* old path and name */         
+             DCL        &PSAN8A  *CHAR LEN(8)   /* CIF address holder*/         
+                                                                                
+             DCL        &WAIT    *DEC  LEN(5 0) VALUE(1)                        
+                                                                                
+             CALLSUBR   SUBR(S999) /* initial setup                  */         
+                                                                                
+/* read dataq for next PDF to process                                */         
+ OMT:        CALL       PGM(QRCVDTAQ) PARM(CP1008 QGPL &FLDLEN +                
+                          &PDFQUE &WAIT)                                        
+             IF         COND(&PDFQUE = ' ') THEN(GOTO CMDLBL(END))              
+                                                                                
+             CALLSUBR   SUBR(S001) /* parse data queue fields        */         
+                                                                                
+/*-------------------------------------------------------------------+          
+ * NOTE: Log file is used to render &PATHNM as text. Without this    +          
+ *       the parm &PATHNM is rendered as hex in the called program.  +          
+ *                                                                   +          
+ *-------------------------------------------------------------------*/         
+             CALL       PGM(PCP10081) PARM(&PSAN8A &PATHNM)                     
+             CALL       PGM(PCP1008)                                            
+                                                                                
+             CHGVAR     VAR(&PDFQUE) VALUE(' ')                                 
+             GOTO       CMDLBL(OMT)                                             
+                                                                                
+/*------------------------------------------------------------------- +         
+ * S001 - parse standard fields from PDF data queue                   +         
+ *                                                                   */         
+             SUBR       SUBR(S001)                                              
+             CHGVAR     VAR(&JOBNAM)  VALUE(%SST(&PDFQUE 15   10))              
+             CHGVAR     VAR(&USER)    VALUE(%SST(&PDFQUE 25   10))              
+             CHGVAR     VAR(&JOBNBR)  VALUE(%SST(&PDFQUE 35    6))              
+             CHGVAR     VAR(&FILE)    VALUE(%SST(&PDFQUE 41   10))              
+             CHGVAR     VAR(&SPLNBRB) VALUE(%SST(&PDFQUE 53    4))              
+             CHGVAR     VAR(&MAILTG)  VALUE(%SST(&PDFQUE 57  250))              
+             CHGVAR     VAR(&PATHNM)  VALUE(%SST(&PDFQUE 307 340))              
+             CHGVAR     VAR(&PSAN8A)  VALUE(%SST(&PDFQUE 663   8))              
+             CHGVAR     VAR(&SPLNBRD) VALUE(%BIN(&SPLNBRB))                     
+ E001:       ENDSUBR                                                            
+/*--------------------------------------------------------------------+         
+ * S999 - initial setup                                               +         
+ *                                                                   */         
+             SUBR       SUBR(S999)                                              
+             CHGJOB     LOG(4 0 *SECLVL) LOGCLPGM(*YES)                         
+/*           CHGJOB     LOG(0 99 *NOLIST) LOGCLPGM(*NO)              */         
+/* get year value, ie 2009                                           */         
+/*           CALL X0027 PARM(&SIDAT &CTRY &FFMT &OFSET &INTVL &YEAR +*/         
+/*                        &TFMT &ERROR)                              */         
+/*           RTVJOBA    JOB(&JOB) USER(&USER)                        */         
+ E999:       ENDSUBR                                                            
+                                                                                
+ END:        ENDPGM                                                             

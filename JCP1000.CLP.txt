@@ -1,0 +1,27 @@
+/*-------------------------------------------------------------------*/         
+/*                                                                   */         
+/*  Create PDF - Calling Program, Never Ending                       */         
+/*                                                                   */         
+/*  CC27295 08.10.2009 Charlie McLean                                */         
+/*          Project started                                          */         
+/*                                                                   */         
+/*-------------------------------------------------------------------*/         
+                                                                                
+ START:      PGM                                                                
+                                                                                
+             DCL        VAR(&DLYSEC) TYPE(*DEC) LEN(4 0) VALUE(60)              
+                                                                                
+             CHGJOB     LOG(0 99 *NOLIST) LOGCLPGM(*NO) +                       
+                          JOBMSGQFL(*WRAP)                                      
+                                                                                
+/* set library list                                                  */         
+             CALL       PGM(J56LIBL) PARM('PRODA73')                            
+                                                                                
+ OMT:        CALL       PGM(JCP1001) /* invoices                     */         
+             CALL       PGM(JCP1002) /* reports                      */         
+             CALL       PGM(JCP1008) /* Email DreamWriter Report     */         
+                                                                                
+             DLYJOB     DLY(&DLYSEC)                                            
+             GOTO       CMDLBL(OMT)                                             
+                                                                                
+ END:        ENDPGM                                                             
